@@ -1,0 +1,1 @@
+{"name":"corso-accettatori-2026","private":true,"version":"1.0.0","type":"module","scripts":{"test":"node --test"},"dependencies":{"@netlify/blobs":"^10.4.0","exceljs":"^4.4.0"}}
