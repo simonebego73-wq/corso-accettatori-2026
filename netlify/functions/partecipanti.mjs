@@ -1,4 +1,4 @@
-import { getStore } from '@netlify/blobs';
+import { connectLambda, getStore } from '@netlify/blobs';
 import ExcelJS from 'exceljs';
 import { randomUUID } from 'node:crypto';
 
@@ -12,7 +12,8 @@ async function all(store) {
   return records.filter(Boolean).sort((a, b) => a.dealer.localeCompare(b.dealer, 'it') || a.cognome.localeCompare(b.cognome, 'it'));
 }
 export async function handler(event) {
-  try {
+  try {    
+    connectLambda(event);
     const store = getStore('corso-accettatori-2026');
     const method = event.httpMethod;
     if (method === 'GET') {
