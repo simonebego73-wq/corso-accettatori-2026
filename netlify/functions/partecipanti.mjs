@@ -10,9 +10,10 @@ const names = {
 
 const fields = [
   'dealer', 'codice', 'nome', 'cognome', 'ruolo',
-  'email', 'edizioni', 'motivazione', 'priorita'
+  'email', 'edizioni', 'motivazione', 'priorita', 'sessione'
 ];
 
+const sessions = { '2026-12-01':'1 e 2 dicembre 2026', '2027-02-17':'17 e 18 febbraio 2027' };
 const clean = value => String(value ?? '').trim().slice(0, 1000);
 
 function json(status, data, headers = {}) {
@@ -27,7 +28,7 @@ function json(status, data, headers = {}) {
 }
 
 function valid(data) {
-  return data.dealer && data.codice && data.nome &&
+  return (!data.sessione || Object.hasOwn(sessions, data.sessione)) && data.dealer && data.codice && data.nome &&
     data.cognome && data.ruolo && data.priorita &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email);
 }
@@ -76,7 +77,8 @@ export default async function (request) {
           ['Motivo della proposta', 'motivazione', 55],
           ['Priorità', 'priorita', 16],
           ['Inserito il', 'createdAt', 23],
-          ['Aggiornato il', 'updatedAt', 23]
+          ['Aggiornato il', 'updatedAt', 23],
+          ['Sessione del corso', 'sessione', 29]
         ].map(([header, key, width]) => ({ header, key, width }));
 
         sheet.getRow(1).font = {
@@ -91,12 +93,13 @@ export default async function (request) {
         };
 
         sheet.views = [{ state: 'frozen', ySplit: 1 }];
-        sheet.autoFilter = { from: 'A1', to: 'L1' };
+        sheet.autoFilter = { from: 'A1', to: 'M1' };
 
         for (const record of records) {
           sheet.addRow({
             ...record,
-            sam: names[record.sam] || record.sam
+            sam: names[record.sam] || record.sam,
+            sessione: sessions[record.sessione] || 'Da assegnare'
           });
         }
 
