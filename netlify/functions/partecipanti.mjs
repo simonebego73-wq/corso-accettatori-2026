@@ -10,7 +10,7 @@ const names = {
 
 const fields = [
   'dealer', 'codice', 'nome', 'cognome', 'ruolo',
-  'email', 'edizioni', 'motivazione', 'priorita', 'sessione'
+  'email', 'edizioni', 'motivazione', 'priorita', 'sessione', 'conferma', 'noteConferma'
 ];
 
 const sessions = { '2026-12-01':'1 e 2 dicembre 2026', '2027-02-17':'17 e 18 febbraio 2027' };
@@ -28,7 +28,10 @@ function json(status, data, headers = {}) {
 }
 
 function valid(data) {
-  return (!data.sessione || Object.hasOwn(sessions, data.sessione)) && data.dealer && data.codice && data.nome &&
+  return (!data.sessione || Object.hasOwn(sessions, data.sessione)) &&
+    ['', 'confermato', 'non_confermato'].includes(data.conferma) &&
+    (data.conferma !== 'non_confermato' || data.noteConferma) &&
+    data.dealer && data.codice && data.nome &&
     data.cognome && data.ruolo && data.priorita &&
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email);
 }
@@ -78,7 +81,9 @@ export default async function (request) {
           ['Priorità', 'priorita', 16],
           ['Inserito il', 'createdAt', 23],
           ['Aggiornato il', 'updatedAt', 23],
-          ['Sessione del corso', 'sessione', 29]
+          ['Sessione del corso', 'sessione', 29],
+          ['Conferma dealer', 'conferma', 22],
+          ['Note risposta dealer', 'noteConferma', 55]
         ].map(([header, key, width]) => ({ header, key, width }));
 
         sheet.getRow(1).font = {
@@ -93,13 +98,15 @@ export default async function (request) {
         };
 
         sheet.views = [{ state: 'frozen', ySplit: 1 }];
-        sheet.autoFilter = { from: 'A1', to: 'M1' };
+        sheet.autoFilter = { from: 'A1', to: 'O1' };
 
         for (const record of records) {
           sheet.addRow({
             ...record,
             sam: names[record.sam] || record.sam,
-            sessione: sessions[record.sessione] || 'Da assegnare'
+            sessione: sessions[record.sessione] || 'Da assegnare',
+            conferma: record.conferma === 'confermato' ? 'Confermato' : record.conferma === 'non_confermato' ? 'Non confermato' : 'Da verificare',
+            noteConferma: record.noteConferma || ''
           });
         }
 
